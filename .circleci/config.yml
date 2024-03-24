@@ -14,9 +14,8 @@ executors:
   small_cpu39:
     docker:
       - image: cimg/base:2024.02
-    environment:
-      PYTHONUNBUFFERED: 1
     resource_class: small
+  
 
 
 # -------------------------------------------------------------------------------------
@@ -40,6 +39,11 @@ commands:
           name: Test bash
           command: |
             echo crypto
+  
+  updatenode:
+    description: Update the apt
+    steps:
+      - run: sudo apt-get update && sudo apt-get install -y
 
 # -------------------------------------------------------------------------------------
 # Actual jobs - now
@@ -54,9 +58,19 @@ jobs:
       - fixgit
       - testecho
 
+  terra_node:
+    executor: small_cpu39
+    parallelism: 1
+    steps:
+      - checkout
+      - fixgit
+      - updatenode
+          
+
+
 workflows:
   version: 2
   commit:
     jobs:
-      - bashtest_39
+      - terra_node
     
