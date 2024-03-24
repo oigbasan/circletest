@@ -1,0 +1,62 @@
+version: 2.1
+
+# -------------------------------------------------------------------------------------
+# environments where we run our jobs
+# -------------------------------------------------------------------------------------
+executors:
+  standard_cpu39:
+    docker:
+      - image: cimg/python:3.9.16
+    environment:
+      PYTHONUNBUFFERED: 1
+    resource_class: large
+
+  small_cpu39:
+    docker:
+      - image: cimg/base:2024.02
+    environment:
+      PYTHONUNBUFFERED: 1
+    resource_class: small
+
+
+# -------------------------------------------------------------------------------------
+# reusable commands
+# -------------------------------------------------------------------------------------
+commands:
+  fixgit:
+    # circleci sets main to the tip of the branch, which isn't super useful for us.
+    # better if main looks like it would on our local machines
+    description: Fixes git
+    steps:
+      - run:
+          name: Fixes git
+          command: |
+            ( [[ "$CIRCLE_BRANCH" != "main" ]] && git branch -f main origin/main ) || true
+
+  testecho:
+    description: Testing bash command
+    steps:
+      - run:
+          name: Test bash
+          command: |
+            echo crypto
+
+# -------------------------------------------------------------------------------------
+# Actual jobs
+# -------------------------------------------------------------------------------------
+jobs:
+  bashtest_39:
+    executor: small_cpu39
+    # working_directory: ~/ParlAI
+    parallelism: 1
+    steps:
+      - checkout
+      - fixgit
+      - testecho
+
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - bashtest_39
+    
